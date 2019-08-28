@@ -44,7 +44,7 @@ class NewVisitorTest(unittest.TestCase):
         
         # The page updates again with both items and still a text box
         self.checkForRowInListTable('1: buy peacock feathers')
-        self.checkForRowInListTable('2: Use peacock feather to make a fly')
+        self.checkForRowInListTable('2: Use peacock feathers to make a fly')
         # They wonder where the site will remember the list.
         # Which is when they notice the unique URL and some instructions
         self.fail('More tests still!')
