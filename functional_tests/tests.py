@@ -48,7 +48,6 @@ class NewVisitorTest(LiveServerTestCase):
         self.waitForRowInListTable('2: Use peacock feathers to make a fly')
         # They wonder where the site will remember the list.
         # Which is when they notice the unique URL and some instructions
-        self.fail('More tests still!')
         # They vist the URL to find their to-do list.
 
         # Satisfied, they leave.
@@ -66,8 +65,11 @@ class NewVisitorTest(LiveServerTestCase):
         # A second user comes along to create their own list
         # First user leaves, and a second user starts their browsing
         self.browser.quit()
+        self.browser = webdriver.Firefox()
+        
+        self.browser.get(self.live_server_url)
         # User 2 should not see any of the first user's data.
-        pageText = self.browser.find_elements_by_tag_name('body').text
+        pageText = self.browser.find_element_by_tag_name('body').text
         self.assertNotIn('buy peacock feathers', pageText)
         self.assertNotIn('make a fly', pageText)
         # User 2 should have their own unique URL and can add and view their own entries

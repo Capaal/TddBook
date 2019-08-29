@@ -35,7 +35,7 @@ class HomePageTest(TestCase):
     def test_redirects_after_POST(self):
         response = self.client.post('/', data={'item_text': 'A new list item'})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
+        self.assertEqual(response['location'], '/lists/the-only-list-in-the-world/')
     
     def testHomePageReturnsCorrectHtml(self):
         response = self.client.get('/')  
@@ -63,3 +63,20 @@ class ItemModelTest(TestCase):
         secondSavedItem = saved_items[1]
         self.assertEqual(firstSavedItem.text, 'The first (ever) list item')
         self.assertEqual(secondSavedItem.text, 'Item the second')
+        
+class ListViewTest(TestCase):
+    
+    def testUsesListTemplate(self):
+        response = self.client.get('/lists/the-only-list-in-the-world/')
+        self.assertTemplateUsed(response, 'list.html')
+    
+    def testDisplaysAllItems(self):
+        Item.objects.create(text='dummy1')
+        Item.objects.create(text='dummy2')
+        
+        response = self.client.get('/lists/the-only-list-in-the-world/')
+        
+        self.assertContains(response, 'dummy1')
+        self.assertContains(response, 'dummy2')
+        
+        
