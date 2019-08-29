@@ -3,7 +3,7 @@ from django.urls import resolve
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 
-from lists.models import Item
+from lists.models import Item, List
 
 from lists.views import home_page
 
@@ -24,13 +24,21 @@ class HomePageTest(TestCase):
 class ItemModelTest(TestCase):
     
     def testSavingAndRetrievingItems(self):
+        itemsList = List()
+        itemsList.save()
+        
         firstItem = Item()
         firstItem.text = 'The first (ever) list item'
+        firstItem.list = itemsList
         firstItem.save()
         
         secondItem = Item()
         secondItem.text = 'Item the second'
+        secondItem.list = itemsList
         secondItem.save()
+        
+        savedList = List.objects.first()
+        self.assertEqual(savedList, itemsList)
         
         saved_items = Item.objects.all()
         self.assertEqual(saved_items.count(), 2)
@@ -38,7 +46,9 @@ class ItemModelTest(TestCase):
         firstSavedItem = saved_items[0]
         secondSavedItem = saved_items[1]
         self.assertEqual(firstSavedItem.text, 'The first (ever) list item')
+        self.assertEqual(firstSavedItem.list, itemsList)
         self.assertEqual(secondSavedItem.text, 'Item the second')
+        self.assertEqual(secondSavedItem.list, itemsList)
         
 class NewListTest(TestCase):
     
@@ -54,6 +64,11 @@ class NewListTest(TestCase):
         self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
         
 class ListViewTest(TestCase):
+    
+    def testDisplaysAllItems(self):
+        itemsList = List.objects.create()
+        Item.objects.create(text='dummy1', list=itemsList)
+        Item.objects.create(text='dummy1', list=itemsList)
     
     def testUsesListTemplate(self):
         response = self.client.get('/lists/the-only-list-in-the-world/')
