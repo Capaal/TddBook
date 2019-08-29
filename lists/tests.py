@@ -12,7 +12,6 @@ class HomePageTest(TestCase):
     def testDisplaysAllListItems(self):
         Item.objects.create(text='dummy1')
         Item.objects.create(text='dummy2')
-        
         response = self.client.get('/')
         
         self.assertIn('dummy1', response.content.decode())

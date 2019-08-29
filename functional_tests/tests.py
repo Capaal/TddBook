@@ -2,6 +2,9 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from django.test import LiveServerTestCase
+from selenium.common.exceptions import WebDriverException
+
+MAX_WAIT = 10
 
 class NewVisitorTest(LiveServerTestCase):
     
@@ -31,8 +34,7 @@ class NewVisitorTest(LiveServerTestCase):
         # Upon hitting enter, the page updates and lists
         #  "1: Buy peacock feathers" as a to-do list item
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(3)
-        self.checkForRowInListTable('1: buy peacock feathers')
+        self.waitForRowInListTable('1: buy peacock feathers')
         
         # There is still a text box inviting more items
         # They enter "Use peacock feathers to make a fly" 
@@ -40,11 +42,10 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         inputbox.send_keys('Use peacock feathers to make a fly')
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(3)
         
         # The page updates again with both items and still a text box
-        self.checkForRowInListTable('1: buy peacock feathers')
-        self.checkForRowInListTable('2: Use peacock feathers to make a fly')
+        self.waitForRowInListTable('1: buy peacock feathers')
+        self.waitForRowInListTable('2: Use peacock feathers to make a fly')
         # They wonder where the site will remember the list.
         # Which is when they notice the unique URL and some instructions
         self.fail('More tests still!')
@@ -52,8 +53,48 @@ class NewVisitorTest(LiveServerTestCase):
 
         # Satisfied, they leave.
         
-    def checkForRowInListTable(self, row_text):
-        table = self.browser.find_element_by_id('id_list_table')
-        rows = table.find_elements_by_tag_name('tr')
-        self.assertIn(row_text, [row.text for row in rows])
+    def testMultipleUsersCanStartListsAtDifferentUrls(self):
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('buy peacock feathers')
+        inputbox.send_keys(Keys.ENTER)
+        self.waitForRowInListTable('1: buy peacock feathers')
+        
+        uniqueListUrl = self.browser.current_url
+        self.assertRegex(uniqueListUrl, '/lists/.+')    
+        
+        # A second user comes along to create their own list
+        # First user leaves, and a second user starts their browsing
+        self.browser.quit()
+        # User 2 should not see any of the first user's data.
+        pageText = self.browser.find_elements_by_tag_name('body').text
+        self.assertNotIn('buy peacock feathers', pageText)
+        self.assertNotIn('make a fly', pageText)
+        # User 2 should have their own unique URL and can add and view their own entries
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+        self.waitForRowInListTable('1: Buy milk')
+        
+        secondUserListUrl = self.browser.current_url
+        self.assertRegex(secondUserListUrl, '/lists/.+')
+        self.assertNotEqual(secondUserListUrl, uniqueListUrl)
+        
+        pageText = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('buy peacock feathers', pageText)
+        self.assertIn('Buy milk', pageText)        
+        
+        
+    def waitForRowInListTable(self, row_text):
+        startTime = time.time()
+        while True:
+            try:
+                table = self.browser.find_element_by_id('id_list_table')
+                rows = table.find_elements_by_tag_name('tr')
+                self.assertIn(row_text, [row.text for row in rows])
+                return
+            except (AssertionError, WebDriverException) as e:
+                if time.time() - startTime > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
         
