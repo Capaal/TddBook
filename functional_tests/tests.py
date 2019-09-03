@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
+import os
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.common.exceptions import WebDriverException
 
@@ -10,6 +11,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
     
     def setUp(self):
         self.browser = webdriver.Firefox()
+        stagingServer = os.environ.get('STAGINGSERVER')
+        if stagingServer:
+           self.live_server_url = 'http://' + stagingServer 
         
     def tearDown(self):
         self.browser.quit()
