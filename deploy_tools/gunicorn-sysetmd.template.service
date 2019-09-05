@@ -6,7 +6,7 @@ Description=Gunicorn server for DOMAIN
 [Service]
 Restart=on-failure
 User=jason
-WorkingDirection=/home/jason/Sites/DOMAIN
+WorkingDirectory=/home/jason/Sites/DOMAIN
 EnvironmentFile=/home/jason/Sites/DOMAIN/.env
 
 ExecStart=/home/jason/Sites/DOMAIN/virtualenv/bin/gunicorn --bind unix:/tmp/DOMAIN.socket superlists.wsgi:application
