@@ -1,38 +1,9 @@
+from .base import FunctionalTest
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
-import os
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium.common.exceptions import WebDriverException
 
-MAX_WAIT = 10
-
-class NewVisitorTest(StaticLiveServerTestCase):
+class NewVisitorTest(FunctionalTest):
     
-    def setUp(self):
-        self.browser = webdriver.Firefox()
-        stagingServer = os.environ.get('STAGINGSERVER')
-        if stagingServer:
-           self.live_server_url = 'http://' + stagingServer 
-        
-    def tearDown(self):
-        self.browser.quit()
-        
-    def testLayoutAndStyling(self):
-        # User vists the home page
-        self.browser.get(self.live_server_url)
-        self.browser.set_window_size(1024, 768)
-        # And notices the input box is nicely centered
-        inputbox = self.browser.find_element_by_id('id_new_item')
-        self.assertAlmostEqual(inputbox.location['x'] + inputbox.size['width'] /2, 512, delta=10)
-        
-        # Next, they start a new list, and find it centered nicely here as well
-        inputbox.send_keys('testing')
-        inputbox.send_keys(Keys.ENTER)
-        self.waitForRowInListTable('1: testing')
-        inputbox = self.browser.find_element_by_id('id_new_item')
-        self.assertAlmostEqual(inputbox.location['x'] + inputbox.size['width'] /2, 512, delta=10)
-        
     def testCanStartAListAndRetrieveItLater(self):
          # User hears about our app and comes to check it out.
         # They go to our homepage
@@ -103,19 +74,4 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         pageText = self.browser.find_element_by_tag_name('body').text
         self.assertNotIn('buy peacock feathers', pageText)
-        self.assertIn('Buy milk', pageText)        
-        
-        
-    def waitForRowInListTable(self, row_text):
-        startTime = time.time()
-        while True:
-            try:
-                table = self.browser.find_element_by_id('id_list_table')
-                rows = table.find_elements_by_tag_name('tr')
-                self.assertIn(row_text, [row.text for row in rows])
-                return
-            except (AssertionError, WebDriverException) as e:
-                if time.time() - startTime > MAX_WAIT:
-                    raise e
-                time.sleep(0.5)
-        
+        self.assertIn('Buy milk', pageText)  
