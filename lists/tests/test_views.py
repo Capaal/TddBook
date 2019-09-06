@@ -53,6 +53,14 @@ class NewListTest(TestCase):
         
 class ListViewTest(TestCase):
     
+    def testValidationErrorsEndUpOnListsPage(self):
+        aList = List.objects.create()
+        response = self.client.post(f'/lists/{aList.id}/', data={'item_text': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'list.html')
+        expectedError = escape("You can't have an empty list item")
+        self.assertContains(response, expectedError)
+    
     def testPassesCorrectListToTemplate(self):
         otherList = List.objects.create()
         correctList = List.objects.create()
