@@ -6,10 +6,15 @@ from django.core.exceptions import ValidationError
 from django.utils.html import escape
 
 from lists.models import Item, List
+from lists.forms import ItemForm
 
 from lists.views import home_page
 
 class HomePageTest(TestCase):
+    
+    def testHomePageUsesItemForm(self):
+        response = self.client.get('/')
+        self.assertIsInstance(response.context['form'], ItemForm)
     
     def testUsesHomeTemplate(self):
         response = self.client.get('/')
