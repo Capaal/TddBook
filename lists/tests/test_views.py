@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.urls import resolve
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.core.exceptions import ValidationError
+from django.utils.html import escape
 
 from lists.models import Item, List
 
@@ -23,6 +25,18 @@ class HomePageTest(TestCase):
         self.assertEqual(found.func, home_page)
         
 class NewListTest(TestCase):
+    
+    def testInvalidListItemsArentSaved(self):
+        self.client.post('/lists/new', data={'item_text': ''})
+        self.assertEqual(List.objects.count(), 0)
+        self.assertEqual(Item.objects.count(), 0)
+    
+    def testValidationErrorsAreSentBackToHomePageTemplate(self):
+        response = self.client.post('/lists/new', data={'item_text': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'home.html')
+        expected_error = escape("You can't have an empty list item")
+        self.assertContains(response, expected_error)
     
     def test_can_save_a_POST_request(self):
         self.client.post('/lists/new', data={'item_text': 'A new list item'})
@@ -71,7 +85,7 @@ class NewItemTest(TestCase):
         otherList = List.objects.create()
         correctList = List.objects.create()
         
-        self.client.post(f'/lists/{correctList.id}/add_item', data={'item_text': 'A new item for an existing list'})
+        self.client.post(f'/lists/{correctList.id}/', data={'item_text': 'A new item for an existing list'})
         
         self.assertEqual(Item.objects.count(), 1)
         newItem = Item.objects.first()
@@ -82,6 +96,6 @@ class NewItemTest(TestCase):
         otherList = List.objects.create()
         correctList = List.objects.create()
         
-        response = self.client.post(f'/lists/{correctList.id}/add_item', data = {'item_text': 'A new item for an existing list'})
+        response = self.client.post(f'/lists/{correctList.id}/', data = {'item_text': 'A new item for an existing list'})
         
         self.assertRedirects(response, f'/lists/{correctList.id}/')
