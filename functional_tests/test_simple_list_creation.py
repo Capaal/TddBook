@@ -15,7 +15,7 @@ class NewVisitorTest(FunctionalTest):
         self.assertIn('To-Do', header_text)
         
         # Immediately they are invited to enter a to-do item
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.getItemInputBox()
         self.assertEquals(inputbox.get_attribute('placeholder'), 'Enter a to-do item')
                           
         # They enter "buy peacock feathers" into a text box (strange)
@@ -29,7 +29,7 @@ class NewVisitorTest(FunctionalTest):
         # There is still a text box inviting more items
         # They enter "Use peacock feathers to make a fly" 
         # (Fly fishing maybe?)
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.getItemInputBox()
         inputbox.send_keys('Use peacock feathers to make a fly')
         inputbox.send_keys(Keys.ENTER)
         
@@ -44,7 +44,7 @@ class NewVisitorTest(FunctionalTest):
         
     def testMultipleUsersCanStartListsAtDifferentUrls(self):
         self.browser.get(self.live_server_url)
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.getItemInputBox()
         inputbox.send_keys('buy peacock feathers')
         inputbox.send_keys(Keys.ENTER)
         self.waitForRowInListTable('1: buy peacock feathers')
@@ -63,7 +63,7 @@ class NewVisitorTest(FunctionalTest):
         self.assertNotIn('buy peacock feathers', pageText)
         self.assertNotIn('make a fly', pageText)
         # User 2 should have their own unique URL and can add and view their own entries
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.getItemInputBox()
         inputbox.send_keys('Buy milk')
         inputbox.send_keys(Keys.ENTER)
         self.waitForRowInListTable('1: Buy milk')
